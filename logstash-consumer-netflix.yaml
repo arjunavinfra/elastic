@@ -36,7 +36,7 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name:  consumer-netflix-logstash
+  name:  netflix-consumer-logstash
   namespace: netflix
   labels:
     app:  logstash

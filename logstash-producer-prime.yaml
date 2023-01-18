@@ -23,16 +23,13 @@ data:
        } 
 
       output {
-        elasticsearch {
-            hosts => "prime-es-http.prime.svc.cluster.local:9200"
-            user => "elastic"
-            password => "${ES_PASSWORD}"
-            ssl => true
-            ssl_certificate_verification => false
-            ecs_compatibility => disabled
-            index => logstash
+        kafka {
+        
+                  bootstrap_servers => "prime-kafka-bootstrap:9092"
+                  topic_id => "LOGSTASH"
         }
-       }
+        }
+
   jvm.options: | 
 
 ---
@@ -40,7 +37,7 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name:  prime-logstash
+  name:  prime-producer-logstash
   namespace: prime
   labels:
     app:  logstash

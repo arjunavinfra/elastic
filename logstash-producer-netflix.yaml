@@ -23,16 +23,11 @@ data:
        } 
 
       output {
-        elasticsearch {
-            hosts => "prime-es-http.prime.svc.cluster.local:9200"
-            user => "elastic"
-            password => "${ES_PASSWORD}"
-            ssl => true
-            ssl_certificate_verification => false
-            ecs_compatibility => disabled
-            index => logstash
+        kafka {
+                  bootstrap_servers => "netflix-kafka-bootstrap:9092"
+                  topic_id => "LOGSTASH"
+      }
         }
-       }
   jvm.options: | 
 
 ---
@@ -40,8 +35,8 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name:  prime-logstash
-  namespace: prime
+  name: netflix-producer-logstash
+  namespace: netflix
   labels:
     app:  logstash
 spec:
@@ -66,7 +61,7 @@ spec:
           - name: ES_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: prime-es-elastic-user
+                name: netflix-es-elastic-user
                 key: elastic
         resources:
           requests:
