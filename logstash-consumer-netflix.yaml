@@ -1,7 +1,7 @@
 kind: ConfigMap
 apiVersion: v1
 metadata:
-  name: logstash-pipeline-config
+  name: consumer-pipeline-config
   namespace: netflix
 data:
   logstash.yml: | 
@@ -11,28 +11,24 @@ data:
         delay: 50
   pipelines.yml: |
       input {
-      generator {
-        lines => [
-          "line 1",
-          "line 2",
-          "line 3"
-        ]
-        # Emit all lines 3 times.
-        count => 3
-      }
-       } 
+        kafka
+             {
+                  bootstrap_servers => "netflix-kafka-bootstrap:9092"
+                  topics => "LOGSTASH"
+           }
+            }
 
-      output {
-        elasticsearch {
-            hosts => "netflix-es-http.netflix.svc.cluster.local:9200"
-            user => "elastic"
-            password => "${ES_PASSWORD}"
-            ssl => true
-            ssl_certificate_verification => false
-            ecs_compatibility => disabled
-            index => logstash
+        output {
+          elasticsearch {
+              hosts => "prime-es-http.prime.svc.cluster.local:9200"
+              user => "elastic"
+              password => "${ES_PASSWORD}"
+              ssl => true
+              ssl_certificate_verification => false
+              ecs_compatibility => disabled
+              index => logstash
+          }
         }
-       }
   jvm.options: | 
 
 ---
@@ -40,8 +36,8 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name:  netflix-logstash
-  namespace: netflix
+  name:  prime-logstash
+  namespace: prime
   labels:
     app:  logstash
 spec:
@@ -66,14 +62,14 @@ spec:
           - name: ES_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: netflix-es-elastic-user
+                name: prime-es-elastic-user
                 key: elastic
         resources:
           requests:
             cpu: 100m
-            memory: 500Mi
+            memory: 200Mi
           limits:
-            cpu: 500m
+            cpu: 200m
             memory: 1.5Gi
         readinessProbe:
           failureThreshold: 3
@@ -92,14 +88,14 @@ spec:
         - containerPort:  9600
           name:  logstash
         volumeMounts:
-        - name: logstash-pipeline-config
+        - name: consumer-pipeline-config
           mountPath: /usr/share/logstash/config/logstash.yml
           subPath: logstash.yml
-        - name: logstash-pipeline-config
+        - name: consumer-pipeline-config
           mountPath: /usr/share/logstash/pipeline/pipelines.yml
           subPath: pipelines.yml
       volumes:
-        - name: logstash-pipeline-config
+        - name: consumer-pipeline-config
           configMap:
-            name: logstash-pipeline-config
+            name: consumer-pipeline-config
       restartPolicy: Always
