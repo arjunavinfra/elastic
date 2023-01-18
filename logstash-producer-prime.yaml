@@ -1,7 +1,7 @@
 kind: ConfigMap
 apiVersion: v1
 metadata:
-  name: logstash-pipeline-config
+  name: producer-pipeline-config
   namespace: prime
 data:
   logstash.yml: | 
@@ -24,7 +24,7 @@ data:
 
       output {
         elasticsearch {
-            hosts => "netflix-es-http.netflix.svc.cluster.local:9200"
+            hosts => "prime-es-http.prime.svc.cluster.local:9200"
             user => "elastic"
             password => "${ES_PASSWORD}"
             ssl => true
@@ -40,8 +40,8 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name:  netflix-logstash
-  namespace: netflix
+  name:  prime-logstash
+  namespace: prime
   labels:
     app:  logstash
 spec:
@@ -66,7 +66,7 @@ spec:
           - name: ES_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: netflix-es-elastic-user
+                name: prime-es-elastic-user
                 key: elastic
         resources:
           requests:
@@ -92,14 +92,14 @@ spec:
         - containerPort:  9600
           name:  logstash
         volumeMounts:
-        - name: logstash-pipeline-config
+        - name: producer-pipeline-config
           mountPath: /usr/share/logstash/config/logstash.yml
           subPath: logstash.yml
-        - name: logstash-pipeline-config
+        - name: producer-pipeline-config
           mountPath: /usr/share/logstash/pipeline/pipelines.yml
           subPath: pipelines.yml
       volumes:
-        - name: logstash-pipeline-config
+        - name: producer-pipeline-config
           configMap:
-            name: logstash-pipeline-config
+            name: producer-pipeline-config
       restartPolicy: Always

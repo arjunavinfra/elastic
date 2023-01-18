@@ -20,7 +20,7 @@ data:
 
         output {
           elasticsearch {
-              hosts => "prime-es-http.prime.svc.cluster.local:9200"
+              hosts => "netflix-es-http.netflix.svc.cluster.local:9200"
               user => "elastic"
               password => "${ES_PASSWORD}"
               ssl => true
@@ -36,8 +36,8 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name:  prime-logstash
-  namespace: prime
+  name:  consumer-netflix-logstash
+  namespace: netflix
   labels:
     app:  logstash
 spec:
@@ -62,7 +62,7 @@ spec:
           - name: ES_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: prime-es-elastic-user
+                name: netflix-es-elastic-user
                 key: elastic
         resources:
           requests:
